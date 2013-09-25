@@ -359,6 +359,8 @@ def BinaryDecisionTreeLearner(dataset):
             A = attrs[0]
             chosen_val = ""
 
+            # Instead of choosing the best attribute based on the n-way split, we choose the best
+            # possible value from all possible values.
             bestInfoGain = 0
             for attr in attrs:
                 if(values[attr] != []):
@@ -371,16 +373,18 @@ def BinaryDecisionTreeLearner(dataset):
 
             values[A] = removeall(chosen_val, values[A])
             newattrs = attrs
+
+            #sanitize the array
             if(values[A] == []):
                 newattrs = removeall(A, newattrs)
 
             val_type = type(chosen_val)
             numerical = is_numerical(val_type)
             
-
             tree = BinaryDecisionFork(A, chosen_val, numerical, dataset.attrnames[A])
 
-
+            # if the attribute is numerical, we split the value based on a numerical policy. If not
+            # we split on a categorical policy.
             if(numerical):
                 array = split_by_numerical(A, chosen_val, examples)
             else:
@@ -407,8 +411,7 @@ def BinaryDecisionTreeLearner(dataset):
             return val[2:]
         else:
             return val[1:]
-
-        
+  
     def split_by_numerical(attr, value, examples):
         return [("<= " + str(value), [e for e in examples if e[attr] <= value]), 
         ("> " + str(value), [e for e in examples if e[attr] > value])]
@@ -426,7 +429,6 @@ def BinaryDecisionTreeLearner(dataset):
         return DecisionLeaf(popular)
 
     def count(attr, val, examples):
-        #print examples[0]
         return count_if(lambda e: e[attr] == val, examples)
 
     def all_same_class(examples):
@@ -471,6 +473,9 @@ def BinaryDecisionTreeLearner(dataset):
 
         for (v, examples_i) in split_examples:
 
+            # if the attribute type is a numeric, we calculate the information gain of 
+            # a split based on less than or greater than the value.
+            # if not, we split on equality.
             if(is_numerical(attr_type)):
 
                 examples_ii = split_by_numerical_without_stuff(attr, v, examples)
@@ -487,15 +492,12 @@ def BinaryDecisionTreeLearner(dataset):
                     maxvalue = vi
                     maxinfo = current_info_gain
 
-
             else:
                 info = (len(examples_i) / N) * I(examples_i)
                 infogain = I(examples) - info
                 if infogain >= maxinfo:
                     maxvalue = v
                     maxinfo = infogain
-
-
 
         return (maxvalue, maxinfo)
 
