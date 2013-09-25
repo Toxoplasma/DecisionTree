@@ -364,6 +364,8 @@ def BinaryDecisionTreeLearner(dataset):
                 if(values[attr] != []):
                     (temp_chosen_val, score) = choose_value(attr, examples, values)
 
+                    #print "for attr " + str(attr) + " score " + str(score)
+
                     if(score >= bestInfoGain):
                         A = attr
                         chosen_val = temp_chosen_val
@@ -489,8 +491,13 @@ def BinaryDecisionTreeLearner(dataset):
 
 
             else:
-                info = (len(examples_i) / N) * I(examples_i)
-                infogain = I(examples) - info
+                splitValues = split_by_binary(attr, examples, v)
+                examplesRest = splitValues[1][1]
+                #info = (len(examples_i) / N) * I(examples_i)
+                #infoOther = (len(examplesRest) / N) * I(examplesRest)
+                remainder = sum((len(examples_ii) / N) * I(examples_ii)
+                        for (v, examples_ii) in split_by_binary(attr, examples, v))
+                infogain = I(examples) - remainder # info - infoOther
                 if infogain >= maxinfo:
                     maxvalue = v
                     maxinfo = infogain
@@ -536,13 +543,6 @@ def DecisionTreeLearner(dataset):
             return plurality_value(examples)
         else:
             A = choose_attribute(attrs, examples)
-            
-            # tree = DecisionFork(A, dataset.attrnames[A])
-            # for (v_k, exs) in split_by(A, examples):
-            #     subtree = decision_tree_learning(
-            #         exs, removeall(A, attrs), examples)
-            #     tree.add(v_k, subtree)
-
             tree = DecisionFork(A, dataset.attrnames[A])
             for (v_k, exs) in split_by(A, examples):
                 subtree = decision_tree_learning(
@@ -929,7 +929,7 @@ def ContinuousXor(n):
 
 def compare(algorithms=[PluralityLearner, NaiveBayesLearner,
                         NearestNeighborLearner, DecisionTreeLearner, BinaryDecisionTreeLearner],
-            datasets=[iris, orings, zoo, restaurant, SyntheticRestaurant(20), ecoli,
+            datasets=[iris, orings, zoo, restaurant, SyntheticRestaurant(20), ecoli, servo, irisstrings, wines, 
                       Majority(7, 100), Parity(7, 100), Xor(100)],
             k=10, trials=1):
     """Compare various learners on various datasets using cross-validation.
